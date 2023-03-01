@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Document</title>
+    <link rel="stylesheet" href="./daqiang.css" media="screen">
+    <!-- <link rel="scriptsheet" href="./dlc_skill.js"> -->
+    <script type="text/javascript" src="./dlc_skill.js"></script>
+</head>
+
+<body>
+    <canvas id="canvas" width="1200px" height="600px"></canvas>
+    <div id="gameOver"></div>
+    <div id="floor">
+        <span id="h1"></span>
+        <span id="h2"></span>
+    </div>
+    <script>
+        var personPic = new Image(100, 100);
+        var w = 1200, h = 600;
+        var pic = [], px = [], py = [], p_dx = [], p_dy = [], pw = [], ph = [], num = [], health = [];
+        var a = [];
+        // personPic.src = "img/person.jpg";
+        var tim = 0;
+        var can = document.getElementById("canvas");
+        var ctx = can.getContext('2d');
+        init();
+        var set = [];
+        function init() {
+            for (var i = 0; i < 2; i++) {
+                pic[i] = new Image();
+                if(i==0)
+                pic[i].src="img/tom.jpg";
+                else
+                pic[i].src="img/lue.jpg"
+                // pic[i].src = "img/person.jpg";
+                pw[i] = 50, ph[i] = 50;
+                p_dx[i] = 0;
+                p_dy[i] = 0;
+                px[i] = Math.floor(Math.random() * (w - pw[i]));
+                py[i] = Math.floor(Math.random() * (h - ph[i]));
+                num[i] = 0;
+                health[i] = 100;
+                a[i] = 4;
+                // alert(px[i],py[i]);
+            }
+        }
+        function update() {
+            setInterval(() => {
+                draw();
+            }, 20);
+            setInterval(() => {
+                for (var i = 0; i < 2; i++)
+                    if (num[i] < 40)
+                        num[i]+=5;
+                tim++;
+                if (tim >= 5)
+                    set = [], tim = 0;
+            }, 1000);
+        }
+        function fire(k, x, y, xv, yv) {
+            // alert(1);
+            tim = 0;
+            var bullet = new Object();
+            bullet.k = k;
+            bullet.vis = 1;
+            bullet.x = x;
+            bullet.y = y;
+            bullet.xv = xv * 2 + Math.floor(16 * Math.random() - 8);
+            bullet.yv = yv * 2 + Math.floor(16 * Math.random() - 8);
+            set.push(bullet);
+            // console.log(set.length);
+        }
+        function check(k) {
+            if (set[k].x < 0 || set[k].x > w || set[k].y < 0 || set[k].y > h) {
+                set[k].vis = 0;
+                return false;
+            }
+            return true;
+        }
+        function gameOver(i) {
+            alert(1 - i + "win\n 点击后刷新！");
+            set = [];
+            // document.getElementById('gameOver').style.display=block;
+        }
+        function checkEnd(i, j) {
+            if (set[j].x >= px[i] && set[j].x <= px[i] + pw[i] && set[j].y >= py[i] && set[j].y <= py[i] + ph[i] && set[j].k == 1 - i) {
+                health[i]--;
+                set[j].vis = 0;
+                console.log(health[i]);
+                if (health[i] == 0)
+                    gameOver(i);
+            }
+        }
+        function checkShield(i,j){
+            var dx=shield[i].x-set[j].x;
+            var dy=shield[i].y-set[j].y;
+            if(dx*dx+dy*dy<shieldR*shieldR)
+            set[j].vis=0;
+        }
+        function draw() {
+            ctx.fillStyle = "black";
+            ctx.strokeStyle="white"
+            ctx.fillRect(0, 0, w, h);
+            for (var i = 0; i < set.length; i++)
+                if (set[i].vis == 1 && check(i)) {
+                    set[i].x += set[i].xv;
+                    set[i].y += set[i].yv;
+                    ctx.beginPath();
+                    ctx.arc(set[i].x, set[i].y, 5, 0, 2 * Math.PI);
+                    // ctx.arc(100,Math.floor(300*Math.random()),5,0,2*Math.PI);
+                    ctx.stroke();
+                }
+            for(var i=0;i<shield.length;i++)
+            {
+                ctx.beginPath();
+                ctx.arc(shield[i].x,shield[i].y,shieldR,0,2*Math.PI);
+                ctx.stroke();
+                for(var j=0;j<set.length;j++)
+                if(set[j].vis)
+                checkShield(i,j);
+            }
+            for (var i = 0; i < 2; i++) {
+                px[i] += p_dx[i];
+                py[i] += p_dy[i];
+                if (px[i] > w - pw[i]) px[i] = w - pw[i];
+                if (px[i] < 0) px[i] = 0;
+                if (py[i] > h - ph[i]) py[i] = h - ph[i];
+                if (py[i] < 0) py[i] = 0;
+                ctx.drawImage(pic[i], px[i], py[i], pw[i], ph[i]);
+            }
+            for (var i = 0; i < 2; i++)
+                for (var j = 0; j < set.length; j++)
+                    if (set[j].vis)
+                        checkEnd(i, j);
+            updateDate();
+            // ctx.drawImage(personPic, px, py, 50, 50);
+        }
+        function updateDate() {
+            var h1 = document.getElementById('h1');
+            var h2 = document.getElementById('h2');
+            h1.innerHTML = "health:" + health[0];
+            h2.innerHTML = "health:" + health[1];
+        }
+        window.onload = function () {
+            update();
+            // dlc_skill();
+            document.onkeydown = function (e) {
+                // alert(e.keyCode);
+                // alert(e.key);
+                
+                if (e.key == 2) {
+                    skill_2(0);
+                }
+                if (e.key == 8) {
+                    skill_2(1);
+                }
+                if(e.key==3){
+                    skill_3(0);
+                }
+                if(e.key==9){
+                    skill_3(1);
+                }
+                if (e.keyCode == 49) {
+                    skill_1(0);
+                }
+                if (e.keyCode == 55) {
+                    skill_1(1);
+                }
+                if (e.keyCode == 69) {
+                    // alert(num[0]);
+                    if (num[0] > 0) {
+                        fire(0, px[0], py[0], p_dx[0], p_dy[0]);
+                        num[0]--;
+                    }
+                }
+                if (e.keyCode == 81) {
+                    for (var i = 0; i < num[0]; i++)
+                        fire(0, px[0], py[0], p_dx[0], p_dy[0]);
+                    num[0] = 0;
+                }
+                if (e.keyCode == 79) {
+                    if (num[1] > 0) {
+                        fire(1, px[1], py[1], p_dx[1], p_dy[1]);
+                        num[1]--;
+                    }
+                }
+                if (e.keyCode == 85) {
+                    for (var i = 0; i < num[1]; i++)
+                        fire(1, px[1], py[1], p_dx[1], p_dy[1]);
+                    num[1] = 0;
+                }
+                if (e.keyCode == 65) {
+                    p_dx[0] = -a[0];
+                }
+                if (e.keyCode == 68) {
+                    p_dx[0] = a[0];
+                }
+                if (e.keyCode == 87) {
+                    p_dy[0] = -a[0];
+                }
+                if (e.keyCode == 83) {
+                    p_dy[0] = a[0];
+                }
+                if (e.keyCode == 74) {
+                    p_dx[1] = -a[1];
+                }
+                if (e.keyCode == 76) {
+                    p_dx[1] = a[1];
+                }
+                if (e.keyCode == 73) {
+                    p_dy[1] = -a[1];
+                }
+                if (e.keyCode == 75) {
+                    p_dy[1] = a[1];
+                }
+                if(e.keyCode==9){
+                    e.returnValue=false;
+                }
+            }
+            document.onkeyup = function (e) {
+                var key = e.keyCode;
+                if (key == 76 && p_dx[1] > 0)
+                    p_dx[1] = 0;
+                if (key == 74 && p_dx[1] < 0)
+                    p_dx[1] = 0;
+                if (key == 75 && p_dy[1] > 0)
+                    p_dy[1] = 0;
+                if (key == 73 && p_dy[1] < 0)
+                    p_dy[1] = 0;
+                if (key == 65 && p_dx[0] < 0)
+                    p_dx[0] = 0;
+                if (key == 68 && p_dx[0] > 0)
+                    p_dx[0] = 0;
+                if (key == 87 && p_dy[0] < 0)
+                    p_dy[0] = 0;
+                if (key == 83 && p_dy[0] > 0)
+                    p_dy[0] = 0;
+            }
+        }
+        // document.getElementById("div").appendChild(personPic);
+
+    </script>
+</body>
+
+</html>

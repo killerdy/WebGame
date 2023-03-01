@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>game5zi</title>
+    <style typ="text/css">
+        .cell {
+            height: 2EM;
+            width: 2EM;
+            text-align: center;
+            font-size: 1.5EM;
+            vertical-align: center;
+            /* font-size: larger; */
+        }
+
+        .tbl {
+            border: solid #008800 2px;
+            cursor: crosshair;
+            border-collapse: collapse;
+        }
+
+        td {
+            border: solid #008800 2px;
+        }
+
+        #headingBox {
+            /* height: 200px; */
+            /* position: absolute; */
+            top: 8px;
+            left: 8px;
+            z-index: 100;
+            width: auto;
+            overflow: visible;
+        }
+
+        span {
+            margin-left: 300px;
+            height: 100px;
+            line-height: 100px;
+            font-size: 45px;
+        }
+
+        #gameOver {
+            width: 100%;
+            display: none;
+            position: fixed;
+            left: 50%;
+            right: 50%;
+            top: 400px;
+            width: 220px;
+            height: 100px;
+            border-radius: 10px;
+            background-color: red;
+            margin-left: -110px;
+            text-align: center;
+            z-index: 5;
+            /* line-height: 200px; */
+            font-size: 35px;
+        }
+
+        /* body {
+            background-color: #000000;
+            color: #aaFFaa;
+        } */
+    </style>
+</head>
+
+<body>
+    <div id="headingBox">
+        <span onclick="reset()">重置</span>
+        <span onclick="turnBack()">悔棋</span>
+    </div>
+    <div id="theTable">
+    </div>
+    <div class="box"></div>
+    <div id="gameOver"></div>
+
+    <script>
+        var boardCols = 20, boardRows = 20;
+        var t = 0;
+        var arr = [];
+        var dx = [0, 1, 1, 1], dy = [1, 1, 0, -1];
+        function rebuildBoard() {
+            arr = [];
+            var tableStr = "<table class=\"tbl\"  onClick=\"getId()\">\n";
+            for (var i = 0; i < boardRows; i++) {
+                arr.push([]);
+                tableStr += "<tr>\n";
+                for (var j = 0; j < boardCols; j++) {
+                    tableStr += "<td class=\"cell\" id=\"c" + i + ":" + j + "\" ></td>";
+                    arr[i][j] = 0;
+                }
+                tableStr += "</tr>\n";
+            }
+            tableStr += "</table>"
+            document.getElementById("theTable").innerHTML = tableStr;
+        }
+        function getId(e) {
+            e = e || window.event;
+            var obj = e.target || e.srcElement;
+            var s = obj.id;
+            s = s.substring(1);
+            var r = parseInt(s), c = parseInt(s.substring(s.indexOf(":") + 1, s.length));
+            if (arr[r][c] == 0) {
+                arr[r][c] = ++t;
+                if (arr[r][c] & 1) {
+                    document.getElementById(obj.id).innerHTML = "#";
+                    check(r, c, 1);
+                }
+                else {
+                    document.getElementById(obj.id).innerHTML = "O";
+                    check(r, c, 0);
+                }
+            }
+            // console.log(t);
+        }
+        function check(x, y, k) {
+            var nx, ny, cnt, ans;
+            for (var i = 0; i < 4; i++) {
+                nx = x, ny = y, cnt = 0, ans = 0;
+                while (1) {
+                    nx += dx[i], ny += dy[i];
+                    if (arr[nx][ny] == 0 || (arr[nx][ny] & 1) != k || nx < 0 || nx >= boardRows || ny < 0 || ny >= boardCols)
+                        break;
+                    cnt++;
+                }
+                if ((arr[nx][ny] & 1) != k && arr[nx][ny] || nx < 0 || nx >= boardRows || ny < 0 || ny >= boardCols) ans++;
+                nx = x, ny = y;
+                while (1) {
+                    nx -= dx[i], ny -= dy[i];
+                    if (arr[nx][ny] == 0 || (arr[nx][ny] & 1) != k || nx < 0 || nx >= boardRows || ny < 0 || ny >= boardCols)
+                        break;
+                    cnt++;
+                }
+                if ((arr[nx][ny] & 1) != k && arr[nx][ny] || nx < 0 || nx >= boardRows || ny < 0 || ny >= boardCols) ans++;
+                if (cnt >= 4 || cnt == 3 && ans == 0)
+                    gameOver(k);
+            }
+        }
+        function turnBack() {
+            for (var i = 0; i < boardRows; i++)
+                for (var j = 0; j < boardCols; j++) {
+                    if (arr[i][j] == t) {
+                        arr[i][j] = 0;
+                        var s = "c" + i + ":" + j;
+                        document.getElementById(s).innerHTML = "";
+                        t--;
+                        return;
+                    }
+                }
+        }
+        function reset() {
+            document.getElementById("gameOver").style.display = "none";
+            t = 0;
+            for (var i = 0; i < boardRows; i++)
+                for (var j = 0; j < boardCols; j++) {
+                    var s = "c" + i + ":" + j;
+                    document.getElementById(s).innerHTML = "";
+                    arr[i][j] = 0;
+                }
+        }
+        function gameOver(k) {
+            var s = "恭喜DayYun赢了—"+k;
+            document.getElementById("gameOver").innerHTML = s;
+            document.getElementById("gameOver").style.display = "block";
+        }
+        window.onload = function () {
+            rebuildBoard();
+        }
+    </script>
+</body>
+
+</html>

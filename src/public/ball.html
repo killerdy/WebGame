@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Document</title>
+    <link rel="stylesheet" href="./daqiang.css" media="screen">
+    <!-- <link rel="scriptsheet" href="./dlc_skill.js"> -->
+    <script type="text/javascript" src="./dlc_skill.js"></script>
+</head>
+
+<body>
+    <canvas id="canvas" width="1200px" height="600px"></canvas>
+    <div id="gameOver"></div>
+    <div id="floor">
+        <span id="h1"></span>
+        <span id="h2"></span>
+    </div>
+    <script>
+        var ballcolor = ['white', 'green', 'blue', 'yellow', 'orange', 'red', 'pink', 'purple'];
+        var ballR = [5, 8, 12, 15, 20, 30, 35, 40];
+        var maxn = 8, score = 0;
+        var ballScore = [100, 300, 900, 2700, 8100, 24300, 50000, 100000];
+        var limit = [0, 300, 900, 2700, 8100, 24300, 50000, 200000];
+        var w = 1200, h = 600;
+        var set = [];
+        var tim = 0;
+        var can = document.getElementById("canvas");
+        var ctx = can.getContext('2d');
+        var set = [];
+        set[0] = new Object();
+        set[0].vis = 1;
+        set[0].x = Math.random() * w;
+        set[0].y = Math.random() * h;
+        set[0].xv = 0;
+        set[0].yv = 0;
+        set[0].siz = 0;
+        set[0].r=5;
+        set[0].c="red";
+        init();
+        function init() {
+            for (var i = 0; i < 10; i++) {
+                var ball = new Object();
+                ball.vis = 1;
+                ball.r=Math.floor(Math.random()*10)+1;
+                ball.c=ballcolor[Math.floor(Math.random()*maxn)];
+                ball.x = Math.random() * w;
+                ball.y = Math.random() * h;
+                ball.xv = Math.random() * 8 - 4;
+                ball.yv = Math.random() * 8 - 4;
+                ball.siz = Math.floor(ballcolor.length * Math.random());
+                set.push(ball);
+            }
+        }
+        function update() {
+            setInterval(() => {
+                draw();
+            }, 20);
+            setInterval(() => {
+                var ball = new Object();
+                ball.vis = 1;
+                // ball.r=Math.floor(Math.random()*1.1*set[0].r);
+                ball.r=Math.floor(Math.random()*(set[0].r+5));
+                ball.c=ballcolor[Math.floor(Math.random()*maxn)];
+                ball.x = Math.floor(Math.random() + 0.5) * w;
+                ball.y = Math.floor(Math.random() + 0.5) * h;
+                ball.xv = Math.random() * 8 - 4;
+                ball.yv = Math.random() * 8 - 4;
+                ball.siz = Math.floor(Math.random() * (set[0].siz + 1));
+                set.push(ball);
+            }, 1000);
+        }
+        function gameOver() {
+            alert("gameOver");
+        }
+        function eat(i, j) {
+            if (i == 0) {
+                if (set[i].r < set[j].r) {
+                    set[i].vis = 0;
+                    gameOver();
+                }
+                score += set[j].r;
+                set[i].r++;
+                set[j].vis = 0;
+
+                // for (var i = 0; i < limit.length; i++)
+                //     if (score >= limit[i])
+                //         set[0].siz = i;
+            }
+            else {
+                if (set[i].r < set[j].r) {
+                    var k = i;
+                    i = j;
+                    j = k;
+                }
+                set[j].vis = 0;
+                set[i].r++;
+                // if (set[i].siz >= maxn)
+                //     set[i].siz = maxn - 1;
+            }
+        }
+        function check(k) {
+            if (set[k].x < 0 && set[k].xv < 0 || set[k].x > w && set[k].xv > 0) set[k].xv = -set[k].xv;
+            if (set[k].y < 0 && set[k].yv < 0 || set[k].y > h && set[k].yv > 0) set[k].yv = -set[k].yv;
+        }
+        function draw() {
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, w, h);
+            for (var i = 0; i < set.length; i++)
+                if (set[i].vis == 1) {
+                    check(i);
+                    set[i].x += set[i].xv;
+                    set[i].y += set[i].yv;
+                    ctx.beginPath();
+                    ctx.strokeStyle = set[i].c;
+                    ctx.fillStyle = set[i].c;
+                    ctx.arc(set[i].x, set[i].y, set[i].r, 0, 2 * Math.PI);
+                    ctx.fill();
+                    // if (i == 0) {
+                    //     var x=set[i].siz-2;
+                    //     if(x<0) x=0;
+                    //     ctx.fillStyle=ballcolor[x];
+                    //     ctx.arc(set[i].x, set[i].y, ballR[x], 0, 2 * Math.PI);
+                    //     ctx.fill();
+                    //     // ctx.fillStyle="black";
+                    // }
+                    ctx.stroke();
+                }
+            for (var i = 0; i < set.length; i++)
+                if (set[i].vis)
+                    for (var j = i + 1; j < set.length; j++)
+                        if (set[j].vis) {
+                            var dx = set[i].x - set[j].x, dy = set[i].y - set[j].y;
+                            var d = dx * dx + dy * dy;
+                            // var dr = ballR[set[i].siz] - ballR[set[j].siz];
+                            var dr=set[i].r+set[j].r;
+                            dr = dr * dr;
+                            // if(d<=dr+5)
+                            if (d < dr)
+                                eat(i, j);
+                        }
+            updateDate();
+        }   
+        function updateDate() {
+            var h1 = document.getElementById('h1');
+            var h2 = document.getElementById('h2');
+            h1.innerHTML = "score:" + score+" r:"+set[0].r;
+        }
+        window.onload = function () {
+            update();
+            document.onkeydown = function (e) {
+                switch (e.key) {
+                    case 'a': set[0].xv = -4; break;
+                    case 'd': set[0].xv = 4; break;
+                    case 'w': set[0].yv = -4; break;
+                    case 's': set[0].yv = 4; break;
+                }
+                if (e.keyCode == 9) {
+                    e.returnValue = false;
+                }
+            }
+            document.onkeyup = function (e) {
+                var key = e.key;
+                if (key == 'w' && set[0].yv < 0)
+                    set[0].yv = 0;
+                if (key == 's' && set[0].yv > 0)
+                    set[0].yv = 0;
+                if (key == 'a' && set[0].xv < 0)
+                    set[0].xv = 0;
+                if (key == 'd' && set[0].xv > 0)
+                    set[0].xv = 0;
+            }
+        }
+
+    </script>
+</body>
+
+</html>
